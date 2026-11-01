@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
   experimental: {
     agentFeedback: true,
   },
@@ -10,6 +10,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     rules: {
       "*.css": {
+        condition: { not: { path: "*.module.css" } },
         loaders: ["@tailwindcss/turbopack"],
         as: "*.css",
       },
