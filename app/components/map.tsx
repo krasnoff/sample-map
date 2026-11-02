@@ -4,12 +4,23 @@ import { useRef, useEffect, useState } from "react";
 import * as maptilersdk from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 import "./map.css";
-import Box from "@mui/material/Box";
+import { MapType } from "./map-types";
 
-export default function Map() {
+export type Location = {
+  longitude: number;
+  latitude: number;
+};
+
+type MapProps = {
+  location: Location;
+  showMarker?: boolean;
+  mapType?: MapType;
+};
+
+export default function Map({ location, showMarker = false, mapType = MapType.STREETS }: MapProps) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const map = useRef<maptilersdk.Map | null>(null);
-  const center = { lng: -157.9253, lat: 21.4732 };
+  const { longitude, latitude } = location;
   const [zoom] = useState(9.79);
 
   useEffect(() => {
@@ -21,8 +32,8 @@ export default function Map() {
 
     map.current = new maptilersdk.Map({
       container: mapContainer.current,
-      style: maptilersdk.MapStyle.STREETS,
-      center: [center.lng, center.lat],
+      style: maptilersdk.MapStyle[mapType],
+      center: [longitude, latitude],
       zoom,
     });
 
@@ -30,13 +41,25 @@ export default function Map() {
       map.current?.remove();
       map.current = null;
     };
-  }, [center.lng, center.lat, zoom]);
+  }, [longitude, latitude, zoom, mapType]);
+
+  useEffect(() => {
+    if (!showMarker || !map.current) return;
+
+    const marker = new maptilersdk.Marker()
+      .setLngLat([longitude, latitude])
+      .addTo(map.current);
+
+    return () => {
+      marker.remove();
+    };
+  }, [showMarker, longitude, latitude, mapType]);
 
   return (
-    <Box sx={{ display: "flex", width: "100%" }}>
+    <div style={{ display: "flex", width: "100%" }}>
       <div className="map-container">
         <div ref={mapContainer} id="map" className="map" />
       </div>
-    </Box>
+    </div>
   );
 }
